@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RFID reader service</title>
+  </head>
+  <body>
+    <!--
+      Invisible document that owns the Web Serial connection. The MV3 service
+      worker cannot do this itself: navigator.serial is undefined in workers.
+    -->
+    <script src="reader.js"></script>
+    <script src="offscreen.js"></script>
+  </body>
+</html>

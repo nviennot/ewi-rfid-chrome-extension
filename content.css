@@ -1,0 +1,66 @@
+/*
+ * Styles for the "Associate RFID Bracelet" cell injected into the Elation chart.
+ * Every selector is scoped to .rfid-associate and uses two classes so ordinary
+ * page rules for elements in the left column cannot win by specificity.
+ */
+
+.rfid-associate {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 12px;
+  font-family: inherit;
+  text-align: left;
+}
+
+.rfid-associate * {
+  box-sizing: border-box;
+}
+
+.rfid-associate .rfid-associate-button {
+  display: block;
+  width: auto;
+  margin: 0;
+  padding: 2px 8px;
+  border: 1px solid #cbd3d8;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #3f4d56;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.rfid-associate .rfid-associate-button:hover:not(:disabled) {
+  border-color: #aeb8bf;
+  background: #f5f7f8;
+}
+
+.rfid-associate .rfid-associate-button:disabled {
+  border-color: #d9dee2;
+  background: #f5f6f7;
+  color: #9aa4aa;
+  cursor: not-allowed;
+}
+
+.rfid-associate .rfid-associate-status {
+  margin: 6px 0 0;
+  padding: 0;
+  color: #4a5568;
+  font-family: inherit;
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rfid-associate .rfid-associate-status[data-tone="success"] {
+  color: #1f7a3d;
+}
+
+.rfid-associate .rfid-associate-status[data-tone="error"] {
+  color: #b3261e;
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>EWI RFID</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <header class="head">
+      <p class="eyebrow">Flexpoint HS-1R</p>
+      <div class="connection-state" id="connectionState" data-state="offline">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="statusText">Not connected</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="patientSection" hidden>
+        <p class="section-label">Current chart</p>
+        <p class="patient">Patient <span id="patientId"></span></p>
+        <button class="button primary" id="associateButton" type="button">
+          Associate bracelet with patient
+        </button>
+        <p class="hint" id="associateHint">
+          Hold one bracelet on the reader. Its block 4 is overwritten with this patient id.
+        </p>
+      </section>
+
+      <section id="noPatientSection" hidden>
+        <p class="hint">
+          Open a chart on <code>app.elationemr.com/patient/&lt;id&gt;</code> to associate a bracelet
+          with that patient.
+        </p>
+      </section>
+
+      <p class="message" id="message" hidden></p>
+
+      <button class="button secondary" id="deviceButton" type="button">Open device page</button>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

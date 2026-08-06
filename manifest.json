@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "EWI RFID",
+  "version": "3.0.0",
+  "description": "Read HF RFID tags with a JADAK Flexpoint HS-1R and open the matching Elation patient chart.",
+  "icons": {
+    "16": "icons/rfid-16.png",
+    "32": "icons/rfid-32.png",
+    "48": "icons/rfid-48.png",
+    "128": "icons/rfid-128.png"
+  },
+  "action": {
+    "default_title": "EWI RFID",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/rfid-16.png",
+      "32": "icons/rfid-32.png"
+    }
+  },
+  "permissions": [
+    "offscreen",
+    "alarms",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://app.elationemr.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.elationemr.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "reader.html",
+    "open_in_tab": true
+  }
+}

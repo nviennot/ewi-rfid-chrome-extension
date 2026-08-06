@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EWI RFID</title>
+    <link rel="stylesheet" href="reader.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">Flexpoint HS-1R</p>
+          <h1>RFID Reader</h1>
+          <p class="intro">Scanning a tag opens the matching Elation patient chart. This page is only for authorizing the reader and writing tags; the reader keeps running in the background when the page is closed.</p>
+        </div>
+        <div class="connection-state" id="connectionState" data-state="offline">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="statusText">Not connected</span>
+        </div>
+      </header>
+
+      <section class="panel connect-panel" aria-labelledby="connectionHeading">
+        <div>
+          <p class="section-label">01 / Connection</p>
+          <h2 id="connectionHeading">JADAK USB serial</h2>
+          <p>Authorize once in Chrome. The extension then holds the reader open in the background and reconnects automatically.</p>
+        </div>
+        <div class="button-row">
+          <button class="button primary" id="connectButton" type="button">Authorize reader</button>
+          <button class="button secondary" id="disconnectButton" type="button" disabled>Disconnect</button>
+        </div>
+      </section>
+
+      <div class="workspace">
+        <section class="panel read-panel" aria-labelledby="readHeading">
+          <p class="section-label">02 / Read</p>
+          <h2 id="readHeading">Tag controls</h2>
+
+          <div class="read-mode">
+            <div class="form-heading">
+              <div>
+                <h3>Automatic block 4 read</h3>
+                <p>Always on while connected. Block 4 holds the patient id, and a scan opens <code>app.elationemr.com/patient/&lt;id&gt;</code> in the active Elation tab.</p>
+              </div>
+            </div>
+          </div>
+
+          <form class="write-form" id="writeForm">
+            <div class="form-heading">
+              <div>
+                <h3>Write application data</h3>
+                <p>Writes exactly 16 bytes to block 4 of the tag presented within 10 seconds.</p>
+              </div>
+            </div>
+
+            <div class="field-grid write-fields">
+              <label class="wide-field">
+                <span>Block 4 decimal number</span>
+                <input id="writeData" type="text" inputmode="numeric" maxlength="39" placeholder="12345" pattern="[0-9]+" spellcheck="false" autocomplete="off" required>
+              </label>
+
+              <label>
+                <span>Sector 1 Key A</span>
+                <input id="writeKey" type="text" value="FFFFFFFFFFFF" maxlength="12" pattern="[0-9A-Fa-f]{12}" spellcheck="false" autocomplete="off" required>
+              </label>
+            </div>
+
+            <p class="write-warning">This overwrites the current contents of block 4. Keep only one tag near the reader.</p>
+            <button class="button danger command-button" id="writeButton" type="submit" disabled>Write block 4</button>
+          </form>
+        </section>
+
+        <section class="panel output-panel" aria-labelledby="outputHeading">
+          <div class="output-heading">
+            <div>
+              <p class="section-label">03 / Output</p>
+              <h2 id="outputHeading">Reader response</h2>
+            </div>
+            <button class="text-button" id="clearButton" type="button">Clear</button>
+          </div>
+
+          <div class="latest-result" id="latestResult">
+            <span>Waiting for a tag</span>
+          </div>
+          <pre class="serial-log" id="serialLog" aria-live="polite"></pre>
+        </section>
+      </div>
+
+      <footer>
+        Keep the HF tag approximately 10–40 mm from the reader. This device does not read LF or UHF tags.
+      </footer>
+    </main>
+
+    <script src="reader.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
