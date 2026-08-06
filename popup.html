@@ -19,7 +19,7 @@
         <p class="section-label">Current chart</p>
         <p class="patient">Patient <span id="patientId"></span></p>
         <button class="button primary" id="associateButton" type="button">
-          Associate bracelet with patient
+          Link RFID Bracelet
         </button>
         <p class="hint" id="associateHint">
           Hold one bracelet on the reader. Its block 4 is overwritten with this patient id.
@@ -35,9 +35,11 @@
 
       <p class="message" id="message" hidden></p>
 
+      <button class="button primary" id="authorizeButton" type="button" hidden>Authorize device</button>
       <button class="button secondary" id="deviceButton" type="button">Open device page</button>
     </main>
 
+    <script src="reader.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

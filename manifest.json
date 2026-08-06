@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EWI RFID",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Read HF RFID tags with a JADAK Flexpoint HS-1R and open the matching Elation patient chart.",
   "icons": {
     "16": "icons/rfid-16.png",

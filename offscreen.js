@@ -90,7 +90,10 @@ function handleTag(decimal) {
   const id = String(decimal).replace(/^0+(?=\d)/, "");
 
   if (!/^[1-9][0-9]*$/.test(id)) {
-    sendToUi({ event: "result", message: `Tag holds no patient id (${decimal}).` });
+    sendToUi({
+      event: "result",
+      message: `Tag holds no patient id (${decimal}).`,
+    });
     return;
   }
 
@@ -119,8 +122,9 @@ async function writeTag({ value, key }) {
     onSuccess: (decimal, info) => {
       outcome = {
         ok: true,
-        message: `Block ${reader.block} write completed successfully: ${decimal}`
-          + resumeSuffix(info),
+        message:
+          `Block ${reader.block} write completed successfully: ${decimal}` +
+          resumeSuffix(info),
       };
     },
     onFailure: (error, info) => {
@@ -128,7 +132,9 @@ async function writeTag({ value, key }) {
     },
   });
 
-  return outcome ?? { ok: false, message: "The write did not report a result." };
+  return (
+    outcome ?? { ok: false, message: "The write did not report a result." }
+  );
 }
 
 function resumeSuffix({ automaticReadsResumed, resumeAttempted }) {
@@ -159,7 +165,7 @@ async function associate({ id }) {
 
   const outcome = await writeTag({ value: patientId });
   const result = outcome.ok
-    ? { ok: true, id: patientId, message: `Bracelet linked to patient ${patientId}.` }
+    ? { ok: true, id: patientId, message: "Bracelet linked to patient" }
     : { ok: false, id: patientId, message: outcome.message };
 
   if (result.ok) {
@@ -190,7 +196,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
 
     case "disconnect":
-      reader.disconnect().then(() => sendResponse({ connected: reader.connected }));
+      reader
+        .disconnect()
+        .then(() => sendResponse({ connected: reader.connected }));
       return true;
 
     case "write":

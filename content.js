@@ -1,7 +1,7 @@
 /**
  * Content script for Elation patient charts.
  *
- * Puts an "Associate Bracelet" button in the left column, after the patient
+ * Puts a "Link RFID Bracelet" button in the left column, after the patient
  * name cell and before the tags cell, so a bracelet can be linked without
  * opening the toolbar popup. The click runs the same `associate` command the
  * popup uses, so the write happens in the offscreen document that owns the
@@ -13,7 +13,7 @@
 "use strict";
 
 const PATIENT_PATH = /^\/patient\/(\d+)(?:[/?#]|$)/;
-const RECENT_ASSOCIATION_MS = 60000;
+const RECENT_ASSOCIATION_MS = 10000;
 const RESYNC_DEBOUNCE_MS = 250;
 const STATE_POLL_MS = 4000;
 // How much taller than its text a tags cell may be and still count as one row.
@@ -28,6 +28,7 @@ let writing = false;
 // busy flag before the offscreen document reports it.
 let pending = false;
 let anchor = null;
+let statusTimer = null;
 
 /* -------------------------------------------------------------------- *
  * The injected cell
@@ -39,7 +40,7 @@ container.className = "rfid-associate";
 const button = document.createElement("button");
 button.type = "button";
 button.className = "rfid-associate-button";
-button.textContent = "Associate RFID Bracelet";
+button.textContent = "Link RFID Bracelet";
 
 const status = document.createElement("p");
 status.className = "rfid-associate-status";
@@ -47,13 +48,19 @@ status.hidden = true;
 
 container.append(button, status);
 
-function showStatus(text, tone = "neutral") {
+function showStatus(text, tone = "neutral", hideAfter = 0) {
+  clearTimeout(statusTimer);
   status.textContent = text;
   status.dataset.tone = tone;
   status.hidden = false;
+  if (hideAfter > 0) {
+    statusTimer = setTimeout(clearStatus, hideAfter);
+  }
 }
 
 function clearStatus() {
+  clearTimeout(statusTimer);
+  statusTimer = null;
   status.textContent = "";
   status.hidden = true;
 }
@@ -64,11 +71,13 @@ function updateControls() {
   if (writing) {
     button.title = "Keep the bracelet on the reader until this finishes.";
   } else if (connected) {
-    button.title = "Hold one bracelet on the reader."
-      + " Its block 4 is overwritten with this patient id.";
+    button.title =
+      "Hold one bracelet on the reader." +
+      " Its block 4 is overwritten with this patient id.";
   } else {
-    button.title = "The reader is not connected."
-      + " Open the extension's device page to authorize it.";
+    button.title =
+      "The reader is not connected." +
+      " Open the extension's device page to authorize it.";
   }
 }
 
@@ -98,7 +107,9 @@ function tagsCell() {
 
   // A patient with tags does not say "No tags", so fall back to the first
   // visible tag-ish cell near the top of the column.
-  for (const element of document.querySelectorAll("[class*='tag' i], [id*='tag' i]")) {
+  for (const element of document.querySelectorAll(
+    "[class*='tag' i], [id*='tag' i]",
+  )) {
     if (container.contains(element)) {
       continue;
     }
@@ -120,8 +131,9 @@ function nameCell(tags) {
   const target = tags?.getBoundingClientRect();
 
   const candidates = document.querySelectorAll(
-    "[class*='patient-name' i], [class*='patientname' i], [class*='patient_name' i],"
-    + " [id*='patient-name' i], [id*='patientname' i], [id*='patient_name' i], h1, h2, h3");
+    "[class*='patient-name' i], [class*='patientname' i], [class*='patient_name' i]," +
+      " [id*='patient-name' i], [id*='patientname' i], [id*='patient_name' i], h1, h2, h3",
+  );
 
   for (const candidate of candidates) {
     if (container.contains(candidate) || !candidate.textContent.trim()) {
@@ -149,12 +161,17 @@ function tagsRow(tags, name) {
   const text = tags.getBoundingClientRect();
   let cell = tags;
 
-  while (cell.parentElement
-    && cell.parentElement !== document.body
-    && cell.parentElement !== document.documentElement
-    && !(name && cell.parentElement.contains(name))) {
+  while (
+    cell.parentElement &&
+    cell.parentElement !== document.body &&
+    cell.parentElement !== document.documentElement &&
+    !(name && cell.parentElement.contains(name))
+  ) {
     const box = cell.parentElement.getBoundingClientRect();
-    if (box.top < text.top - ROW_PADDING || box.bottom > text.bottom + ROW_PADDING) {
+    if (
+      box.top < text.top - ROW_PADDING ||
+      box.bottom > text.bottom + ROW_PADDING
+    ) {
       break;
     }
     cell = cell.parentElement;
@@ -176,9 +193,11 @@ function ownsRow(tags) {
   const target = tags.getBoundingClientRect();
   const available = container.parentElement?.clientWidth ?? 0;
 
-  return box.height > 0
-    && box.bottom <= target.top + 1
-    && box.width >= available * 0.8;
+  return (
+    box.height > 0 &&
+    box.bottom <= target.top + 1 &&
+    box.width >= available * 0.8
+  );
 }
 
 /**
@@ -188,15 +207,19 @@ function ownsRow(tags) {
  * tags cell does not already draw one above itself.
  */
 function edge(style, side) {
-  return style[`border${side}Style`] !== "none"
-    && parseFloat(style[`border${side}Width`]) > 0
-    && style[`border${side}Color`] !== "transparent"
-    && style[`border${side}Color`] !== "rgba(0, 0, 0, 0)";
+  return (
+    style[`border${side}Style`] !== "none" &&
+    parseFloat(style[`border${side}Width`]) > 0 &&
+    style[`border${side}Color`] !== "transparent" &&
+    style[`border${side}Color`] !== "rgba(0, 0, 0, 0)"
+  );
 }
 
 function rule(style, side) {
-  return `${style[`border${side}Width`]} ${style[`border${side}Style`]} `
-    + `${style[`border${side}Color`]}`;
+  return (
+    `${style[`border${side}Width`]} ${style[`border${side}Style`]} ` +
+    `${style[`border${side}Color`]}`
+  );
 }
 
 function applyDivider(cell) {
@@ -226,7 +249,8 @@ function mount() {
   if (!tags) {
     if (name?.parentElement) {
       name.parentElement.insertBefore(container, name.nextSibling);
-      anchor = container.nextSibling instanceof Element ? container.nextSibling : null;
+      anchor =
+        container.nextSibling instanceof Element ? container.nextSibling : null;
     }
     return;
   }
@@ -234,9 +258,11 @@ function mount() {
   let cell = tagsRow(tags, name);
 
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    if (!cell.parentElement
-      || (name && cell.contains(name))
-      || cell.getBoundingClientRect().height > window.innerHeight * 0.6) {
+    if (
+      !cell.parentElement ||
+      (name && cell.contains(name)) ||
+      cell.getBoundingClientRect().height > window.innerHeight * 0.6
+    ) {
       break;
     }
     cell.parentElement.insertBefore(container, cell);
@@ -260,8 +286,11 @@ function unmount() {
 }
 
 function mounted() {
-  return container.isConnected
-    && (anchor === null || (anchor.isConnected && container.nextSibling === anchor));
+  return (
+    container.isConnected &&
+    (anchor === null ||
+      (anchor.isConnected && container.nextSibling === anchor))
+  );
 }
 
 /**
@@ -282,7 +311,8 @@ function dropCopies() {
 
 function command(cmd, extra = {}) {
   try {
-    return chrome.runtime.sendMessage({ to: "offscreen", cmd, ...extra })
+    return chrome.runtime
+      .sendMessage({ to: "offscreen", cmd, ...extra })
       .catch(() => undefined);
   } catch {
     // The extension was reloaded or disabled while this page stayed open.
@@ -306,11 +336,16 @@ async function loadState() {
 
   applyState(state);
 
-  const recent = state.lastAssociation
-    && state.lastAssociation.id === patientId
-    && Date.now() - state.lastAssociation.at < RECENT_ASSOCIATION_MS;
+  const recent =
+    state.lastAssociation &&
+    state.lastAssociation.id === patientId &&
+    Date.now() - state.lastAssociation.at < RECENT_ASSOCIATION_MS;
   if (recent && status.hidden) {
-    showStatus(state.lastAssociation.message, state.lastAssociation.ok ? "success" : "error");
+    showStatus(
+      state.lastAssociation.message,
+      state.lastAssociation.ok ? "success" : "error",
+      RECENT_ASSOCIATION_MS - (Date.now() - state.lastAssociation.at),
+    );
   }
 }
 
@@ -327,14 +362,21 @@ function listen() {
 
   events.onMessage.addListener((message) => {
     if (message.event === "busy") {
-      applyState({ connected: message.state.connected, busy: message.state.commandBusy });
+      applyState({
+        connected: message.state.connected,
+        busy: message.state.commandBusy,
+      });
     } else if (message.event === "status") {
       connected = message.state === "online";
       updateControls();
     } else if (message.event === "associate" && message.id === patientId) {
       pending = false;
       writing = false;
-      showStatus(message.message, message.ok ? "success" : "error");
+      showStatus(
+        message.message,
+        message.ok ? "success" : "error",
+        RECENT_ASSOCIATION_MS,
+      );
       updateControls();
     }
   });
@@ -355,7 +397,7 @@ button.addEventListener("click", async () => {
   pending = true;
   writing = true;
   updateControls();
-  showStatus("Present and hold the bracelet on the reader...");
+  showStatus("Present the bracelet on the reader...");
 
   const outcome = await command("associate", { id: target });
 
@@ -368,7 +410,11 @@ button.addEventListener("click", async () => {
     return;
   }
   if (outcome) {
-    showStatus(outcome.message, outcome.ok ? "success" : "error");
+    showStatus(
+      outcome.message,
+      outcome.ok ? "success" : "error",
+      RECENT_ASSOCIATION_MS,
+    );
   } else {
     showStatus("The reader service is not running.", "error");
   }

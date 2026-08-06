@@ -55,7 +55,16 @@ async function ensureOffscreen() {
 
 ensureOffscreen();
 chrome.runtime.onStartup.addListener(ensureOffscreen);
-chrome.runtime.onInstalled.addListener(ensureOffscreen);
+chrome.runtime.onInstalled.addListener((details) => {
+  ensureOffscreen()
+    .then(() => {
+      if (details.reason === "install") {
+        return chrome.tabs.create({ url: chrome.runtime.getURL("install.html") });
+      }
+      return undefined;
+    })
+    .catch((error) => console.error("Could not complete RFID extension setup:", error));
+});
 chrome.alarms.create(KEEPALIVE_ALARM, { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === KEEPALIVE_ALARM) {

@@ -14,6 +14,9 @@ zip -FS -r "$output" \
   background.js \
   content.css \
   content.js \
+  install.css \
+  install.html \
+  install.js \
   offscreen.html \
   offscreen.js \
   popup.css \
